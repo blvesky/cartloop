@@ -1,0 +1,7 @@
+1. Open http://localhost:8080/ and confirm the Cart badge shows 0.
+2. Add one Field Notebook ($18.00) and one Dune Mug ($24.00) using their Add to cart buttons. Verify the Cart badge shows 2 and the Subtotal is $42.00.
+3. In Your cart, enter LOOP10 in Discount code and click Apply. Verify the LOOP10 discount is −$4.20 and the Total is $37.80.
+4. In Checkout, enter Taylor Example for Full name, taylor@example.com for Email, 42 Demo Lane, Sample City for Shipping address, 4242424242424242 for Card number, 12/39 for Expiry (MM/YY), and 123 for Security code.
+5. Click Place order.
+6. Verify that Order confirmed is visible and the Order number starts with CL- followed by exactly six characters from 0–9 or A–F. Verify the confirmation's Final total is $37.80.
+7. Verify the Cart badge shows 0 and Your cart is empty.

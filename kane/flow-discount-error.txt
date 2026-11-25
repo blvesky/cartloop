@@ -1,0 +1,5 @@
+1. Open http://localhost:8080/ and confirm the Cart badge shows 0.
+2. Add one Field Notebook ($18.00) using its Add to cart button. Verify the Cart badge shows 1 and the Subtotal and Total both show $18.00.
+3. Enter BOGUS in Discount code and click Apply.
+4. Verify the inline message under Discount code reads "Invalid discount code."
+5. Verify the Subtotal and Total still show $18.00 and there is no LOOP10 discount row.

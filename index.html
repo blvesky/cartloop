@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CartLoop</title>
+<style>
+  :root{color-scheme:light;--ink:#172d28;--muted:#455b51;--line:#d6ded4;--paper:#f7f6ee;--white:#fffef9;--lime:#d9f28d;--error:#a0262c}
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.45 system-ui,sans-serif}
+  a{color:inherit}
+  button,input,textarea{font:inherit}
+  button{cursor:pointer}
+  :focus-visible{outline:3px solid #497330;outline-offset:3px}
+  .wrap{width:min(1180px,calc(100% - 40px));margin-inline:auto}
+  .top{border-bottom:1px solid var(--line)}
+  .bar{min-height:70px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .brand,.cart-link{display:inline-flex;align-items:center;gap:9px;text-decoration:none;font-weight:750}
+  .brand svg{width:29px;height:29px}
+  .cart-link{padding:7px 10px 7px 14px;border:1px solid var(--line);border-radius:40px;background:var(--white)}
+  #cart-count{border-radius:50px;background:var(--lime);padding:1px 7px;min-width:24px;text-align:center;font-variant-numeric:tabular-nums}
+  .hero{padding:clamp(24px,5vw,60px);margin-block:24px 34px;border-radius:24px;background:#203c32;color:#fffef5;overflow:hidden;position:relative}
+  .hero svg{position:absolute;right:-20px;top:-90px;width:clamp(170px,36vw,460px);color:#d9f28d;opacity:.23;pointer-events:none}
+  .hero h1,.hero p{position:relative;margin:0}
+  .hero h1{font:400 clamp(2.45rem,6.5vw,5.1rem)/.98 Georgia,serif;letter-spacing:-.05em}
+  .hero p{margin-top:14px;color:#e1ebdd}
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(310px,370px);gap:24px;align-items:start}
+  h2{margin:0 0 12px;font:400 2rem/1.08 Georgia,serif;letter-spacing:-.035em}
+  h3,p{margin:0}
+  .products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .product,.panel{background:var(--white);border:1px solid var(--line);border-radius:16px}
+  .product{padding:8px;display:flex;flex-direction:column}
+  .tile{display:grid;place-items:center;aspect-ratio:1.2;border-radius:10px;overflow:hidden}
+  .tile svg{width:85%;height:94%}
+  .product h3{font-size:1rem;margin:9px 3px 2px}
+  .price{font-size:.88rem;margin:0 3px 9px;color:var(--muted)}
+  .btn{border:1px solid var(--ink);border-radius:8px;padding:8px 12px;background:var(--white);color:var(--ink);font-weight:700}
+  .btn:not(:disabled):hover{background:#e6efd9}
+  .product .btn{width:100%;margin-top:auto;font-size:.88rem}
+  .rail{display:grid;gap:12px}
+  .panel{padding:18px;scroll-margin-top:14px}
+  .muted,small{color:var(--muted);font-size:.86rem}
+  .cart-items{list-style:none;padding:0;margin:0}
+  .cart-items li{padding:9px 0;display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
+  .item-name{display:block;font-size:.93rem}
+  .controls{display:flex;align-items:center;gap:6px;font-size:.85rem}
+  .controls button{padding:4px 8px}
+  .controls .remove{border-color:transparent;text-decoration:underline;padding-inline:3px}
+  #promo-form{margin:12px 0}
+  .promo-row,.split{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start}
+  .split{grid-template-columns:repeat(2,minmax(0,1fr))}
+  label{display:block;font-size:.88rem;font-weight:700;margin-bottom:4px}
+  input,textarea{width:100%;min-width:0;padding:8px 9px;color:var(--ink);background:var(--white);border:1px solid #8c9b90;border-radius:8px}
+  textarea{display:block;resize:vertical}
+  [aria-invalid="true"]{border-color:var(--error)}
+  .error,.promo-message{display:block;font-size:.84rem;margin-top:3px}
+  .error,.promo-message[data-error="true"]{color:var(--error)}
+  .error:empty,.promo-message:empty{display:none}
+  dl{margin:0;font-variant-numeric:tabular-nums}
+  dl div{display:flex;justify-content:space-between;gap:10px;padding:4px 0}
+  dd{margin:0}
+  .total{border-top:1px solid var(--line);margin-top:6px;padding-top:9px;font-weight:800}
+  #checkout-form{display:grid;gap:9px;margin-top:12px}
+  .primary{border-color:transparent;background:var(--lime);padding:10px;width:100%}
+  .primary:disabled{background:#e6eadf;color:#526052;cursor:default}
+  .confirmation{background:#e9f4cc;border-color:#a5b681}
+  .confirmation p+p{margin-top:5px}
+  footer{margin-block:24px 30px}
+  footer .panel{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:16px;row-gap:4px}
+  footer h2{margin:0;font-size:1.45rem}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  @media(max-width:940px){.products{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:700px){.wrap{width:calc(100% - 24px)}.layout{grid-template-columns:1fr}.hero{margin-block:14px 22px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap bar">
+    <a class="brand" href="#" aria-label="CartLoop home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#d9f28d"/><path d="M9 15a7 7 0 0 1 12-5l2 2m0-4v4h-4m4 5a7 7 0 0 1-12 5l-2-2m0 4v-4h4" fill="none" stroke="#172d28" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      CartLoop
+    </a>
+    <a class="cart-link" href="#cart">Cart <span id="cart-count">0</span></a>
+  </div>
+</header>
+<main class="wrap">
+  <section class="hero" aria-labelledby="hero-title">
+    <svg viewBox="0 0 440 340" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><ellipse cx="275" cy="185" rx="128" ry="95"/><ellipse cx="275" cy="185" rx="151" ry="116"/><ellipse cx="275" cy="185" rx="174" ry="137"/><ellipse cx="275" cy="185" rx="197" ry="158"/><ellipse cx="275" cy="185" rx="220" ry="179"/></svg>
+    <h1 id="hero-title">Everyday goods</h1>
+    <p>A demo shop for the desk, the kitchen, and the day out.</p>
+  </section>
+  <div class="layout">
+    <section aria-labelledby="shop-title">
+      <h2 id="shop-title">Shop</h2>
+      <div class="products" id="products"></div>
+    </section>
+    <div class="rail">
+      <section class="panel confirmation" id="confirmation" tabindex="-1" aria-labelledby="confirmation-title" hidden>
+        <h2 id="confirmation-title">Order confirmed</h2>
+        <p>Order number <strong id="order-number"></strong></p>
+        <p>Final total <strong id="order-total"></strong></p>
+      </section>
+      <section id="cart" class="panel" aria-labelledby="cart-title">
+        <h2 id="cart-title" tabindex="-1">Your cart</h2>
+        <p class="muted" id="empty">Your cart is empty.</p>
+        <ul class="cart-items" id="cart-items"></ul>
+        <form id="promo-form" novalidate>
+          <label for="promo">Discount code</label>
+          <div class="promo-row">
+            <input id="promo" autocomplete="off" aria-describedby="promo-message">
+            <button class="btn" type="submit">Apply</button>
+          </div>
+          <p class="promo-message" id="promo-message" aria-live="polite"></p>
+        </form>
+        <dl>
+          <div><dt>Subtotal</dt><dd id="subtotal">$0.00</dd></div>
+          <div id="discount-row" hidden><dt>LOOP10 discount</dt><dd id="discount"></dd></div>
+          <div class="total"><dt>Total</dt><dd id="total">$0.00</dd></div>
+        </dl>
+      </section>
+      <section class="panel" aria-labelledby="checkout-title">
+        <h2 id="checkout-title">Checkout</h2>
+        <p class="muted">Demo only. Use test details. No payment will be taken.</p>
+        <form id="checkout-form" autocomplete="off" novalidate>
+          <div><label for="name">Full name</label><input id="name" required aria-describedby="name-error"><small class="error" id="name-error"></small></div>
+          <div><label for="email">Email</label><input id="email" type="email" required aria-describedby="email-error"><small class="error" id="email-error"></small></div>
+          <div><label for="address">Shipping address</label><textarea id="address" rows="2" required aria-describedby="address-error"></textarea><small class="error" id="address-error"></small></div>
+          <div><label for="card">Card number</label><input id="card" inputmode="numeric" required aria-describedby="card-error"><small class="error" id="card-error"></small></div>
+          <div class="split">
+            <div><label for="expiry">Expiry (MM/YY)</label><input id="expiry" placeholder="MM/YY" required aria-describedby="expiry-error"><small class="error" id="expiry-error"></small></div>
+            <div><label for="cvc">Security code</label><input id="cvc" inputmode="numeric" required aria-describedby="cvc-error"><small class="error" id="cvc-error"></small></div>
+          </div>
+          <button class="btn primary" id="place-order" type="submit" disabled>Place order</button>
+        </form>
+      </section>
+    </div>
+  </div>
+</main>
+<footer class="wrap">
+  <section class="panel" aria-labelledby="self-check-title">
+    <h2 id="self-check-title">Self-check</h2>
+    <p class="muted">After every change, run the self-check to have Kane CLI verify checkout in a real browser.</p>
+  </section>
+</footer>
+<div class="sr-only" id="cart-status" role="status"></div>
+<script>
+  const catalog = [
+    ['notebook', 'Field Notebook', 1800, '#e1e9c9', '<path d="M50 30h82v91H50z" fill="#a8bb78" transform="rotate(-12 91 75)"/><path d="M54 27h75v97H54z" fill="#f9eed0" stroke="#263d33" stroke-width="2" transform="rotate(8 91 75)"/><path d="M65 26v95M78 52h33M78 61h27" fill="none" stroke="#49694a" stroke-width="2" transform="rotate(8 91 75)"/>'],
+    ['mug', 'Dune Mug', 2400, '#f0ded0', '<ellipse cx="91" cy="116" rx="55" ry="8" fill="#c28973" opacity=".35"/><path d="M120 57h11a14 14 0 0 1 0 28h-14" fill="none" stroke="#a64e36" stroke-width="8"/><path d="M54 49h70l-6 53a11 11 0 0 1-11 10H71a11 11 0 0 1-11-10z" fill="#c77353"/><ellipse cx="89" cy="49" rx="35" ry="10" fill="#a64e36"/><ellipse cx="89" cy="50" rx="27" ry="5" fill="#6c392f"/><path d="M71 66l3 29" stroke="#edb29a" stroke-width="3" stroke-linecap="round"/>'],
+    ['tote', 'Market Tote', 2600, '#e8e1c9', '<path d="M70 64V50a20 20 0 0 1 40 0v14" fill="none" stroke="#314f3e" stroke-width="6"/><path d="M54 58h72l9 61H45z" fill="#66865b"/><path d="M62 66h56l7 45H55z" fill="none" stroke="#bdd69a" stroke-width="1.5"/><path d="M79 88h22m-11-11v22" stroke="#d9f28d" stroke-width="3"/>'],
+    ['tray', 'Pebble Tray', 3200, '#e6e0ed', '<rect x="39" y="42" width="102" height="69" rx="25" fill="#67577b" transform="rotate(-12 90 76)"/><rect x="45" y="38" width="90" height="62" rx="22" fill="#9c88b0" stroke="#67577b" stroke-width="2" transform="rotate(-12 90 76)"/><rect x="54" y="46" width="72" height="46" rx="16" fill="#d4c5dd" transform="rotate(-12 90 76)"/>'],
+    ['bottle', 'Ridge Bottle', 3800, '#dce9e7', '<path d="M77 35h26v15l8 10a14 14 0 0 1 4 9v44a7 7 0 0 1-7 7H72a7 7 0 0 1-7-7V69a14 14 0 0 1 4-9l8-10z" fill="#417b76"/><rect x="75" y="27" width="30" height="15" rx="4" fill="#214942"/><path d="M76 72v31m9-31v31m10-31v31m9-31v31" stroke="#9dc7be" stroke-width="2" stroke-linecap="round"/>'],
+    ['lamp', 'Arc Desk Lamp', 5400, '#f1e7ca', '<path d="M92 115V52a17 17 0 0 0-34 0" fill="none" stroke="#755528" stroke-width="5"/><path d="M46 49h24l12 23H34z" fill="#b8792d"/><ellipse cx="58" cy="72" rx="24" ry="4" fill="#dca84c"/><path d="M42 82l-8 14m24-12v15m16-17 8 14" stroke="#a57632" stroke-width="2" stroke-linecap="round"/><ellipse cx="92" cy="116" rx="29" ry="7" fill="#755528"/>']
+  ];
+  const $ = id => document.getElementById(id);
+  const money = cents => '$' + (cents / 100).toFixed(2);
+  const cart = new Map();
+  let hasDiscount = false;
+
+  $('products').innerHTML = catalog.map(([id, name, cents, color, art]) => `
+    <article class="product">
+      <div class="tile" style="background:${color}">
+        <svg viewBox="0 0 180 145" aria-hidden="true">${art}</svg>
+      </div>
+      <h3>${name}</h3><p class="price">${money(cents)}</p>
+      <button type="button" class="btn" data-id="${id}" aria-label="Add ${name} to cart">Add to cart</button>
+    </article>`).join('');
+
+  function totals() {
+    const subtotal = catalog.reduce((sum, [id, , cents]) => sum + (cart.get(id) || 0) * cents, 0);
+    const discount = hasDiscount ? Math.round(subtotal / 10) : 0;
+    return { subtotal, discount, total: subtotal - discount };
+  }
+
+  function promoMessage(message, error = false) {
+    $('promo-message').textContent = message;
+    $('promo-message').dataset.error = String(error);
+    $('promo').setAttribute('aria-invalid', String(error));
+  }
+
+  function renderCart() {
+    const count = [...cart.values()].reduce((sum, quantity) => sum + quantity, 0);
+    const { subtotal, discount, total } = totals();
+    $('cart-count').textContent = count;
+    $('empty').hidden = count > 0;
+    $('subtotal').textContent = money(subtotal);
+    $('discount-row').hidden = !hasDiscount;
+    $('discount').textContent = '−' + money(discount);
+    $('total').textContent = money(total);
+    $('place-order').disabled = count === 0;
+    $('cart-items').innerHTML = catalog.filter(([id]) => cart.has(id)).map(([id, name, cents]) => `
+      <li>
+        <div><strong class="item-name">${name}</strong><small>${money(cents)} each</small></div>
+        <div class="controls">
+          <button type="button" id="less-${id}" class="btn" data-id="${id}" data-change="-1" aria-label="Decrease quantity of ${name}">−</button>
+          <span aria-label="Quantity ${cart.get(id)}">${cart.get(id)}</span>
+          <button type="button" id="more-${id}" class="btn" data-id="${id}" data-change="1" aria-label="Increase quantity of ${name}">+</button>
+          <button type="button" class="btn remove" data-id="${id}" data-change="remove" aria-label="Remove ${name}">Remove</button>
+        </div>
+      </li>`).join('');
+  }
+
+  function changeCart(id, quantity) {
+    if (quantity > 0) cart.set(id, quantity);
+    else cart.delete(id);
+    if (!cart.size) {
+      hasDiscount = false;
+      $('promo-form').reset();
+      promoMessage('');
+    }
+    renderCart();
+    $('cart-status').textContent = `Cart updated. ${$('cart-count').textContent} items. Total ${$('total').textContent}.`;
+  }
+
+  $('products').addEventListener('click', event => {
+    const button = event.target.closest('button[data-id]');
+    if (!button) return;
+    const { id } = button.dataset;
+    $('confirmation').hidden = true;
+    changeCart(id, (cart.get(id) || 0) + 1);
+  });
+
+  $('cart-items').addEventListener('click', event => {
+    const button = event.target.closest('button[data-change]');
+    if (!button) return;
+    const { id, change } = button.dataset;
+    changeCart(id, change === 'remove' ? 0 : cart.get(id) + Number(change));
+    ($(button.id) || $('cart-title')).focus();
+  });
+
+  $('promo-form').addEventListener('submit', event => {
+    event.preventDefault();
+    if ($('promo').value.trim().toUpperCase() !== 'LOOP10') {
+      promoMessage('Invalid discount code.', true);
+    } else if (!cart.size) {
+      promoMessage('Add an item before applying a discount.', true);
+    } else {
+      hasDiscount = true;
+      promoMessage('LOOP10 applied.');
+      renderCart();
+    }
+  });
+
+  const checks = {
+    name: value => value ? '' : 'Enter your full name.',
+    email: value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && !$('email').validity.typeMismatch
+      ? '' : 'Enter a valid email address.',
+    address: value => value ? '' : 'Enter your shipping address.',
+    card: value => /^\d{16}$/.test(value.replace(/[ -]/g, '')) ? '' : 'Enter a 16-digit card number.',
+    expiry: value => /^(0[1-9]|1[0-2])\/\d{2}$/.test(value) ? '' : 'Enter an expiry in MM/YY format.',
+    cvc: value => /^\d{3,4}$/.test(value) ? '' : 'Enter a 3- or 4-digit security code.'
+  };
+
+  function showError(id, message) {
+    $(id + '-error').textContent = message;
+    $(id).setAttribute('aria-invalid', String(Boolean(message)));
+  }
+
+  for (const id of Object.keys(checks)) {
+    $(id).addEventListener('input', () => {
+      if ($(id).getAttribute('aria-invalid') === 'true') showError(id, checks[id]($(id).value.trim()));
+    });
+  }
+
+  $('checkout-form').addEventListener('submit', event => {
+    event.preventDefault();
+    if (!cart.size) return;
+    let firstInvalid;
+    for (const [id, check] of Object.entries(checks)) {
+      const message = check($(id).value.trim());
+      showError(id, message);
+      if (message && !firstInvalid) firstInvalid = $(id);
+    }
+    if (firstInvalid) {
+      firstInvalid.focus();
+      return;
+    }
+
+    const random = crypto.getRandomValues(new Uint8Array(3));
+    $('order-number').textContent = 'CL-' + [...random].map(byte => byte.toString(16).padStart(2, '0')).join('').toUpperCase();
+    $('order-total').textContent = money(totals().total);
+    cart.clear();
+    hasDiscount = false;
+    $('promo-form').reset();
+    promoMessage('');
+    event.currentTarget.reset();
+    renderCart();
+    $('confirmation').hidden = false;
+    $('confirmation').focus();
+  });
+</script>
+</body>
+</html>
