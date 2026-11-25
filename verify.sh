@@ -91,5 +91,6 @@ PY
 result=0
 run_flow kane/flow-checkout.txt || result=1
 run_flow kane/flow-discount-error.txt || result=1
+run_flow kane/flow-cart-validation.txt || result=1
 printf 'Verification logs: %s\n' "$logs"
 exit "$result"
