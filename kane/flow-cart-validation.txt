@@ -1,4 +1,4 @@
-1. Open http://localhost:8080/ and confirm the Cart badge shows 0 and the Subtotal is $0.00.
+1. Open http://127.0.0.1:8080/ and confirm the Cart badge shows 0 and the Subtotal is $0.00.
 2. Add one Field Notebook ($18.00) using its Add to cart button. Verify the Cart badge shows 1 and the Subtotal is $18.00.
 3. Add one Dune Mug ($24.00) using its Add to cart button. Verify the Cart badge shows 2 and the Subtotal is $42.00.
 4. In Your cart, click + for Field Notebook. Verify its quantity is 2, the Cart badge shows 3, and the Subtotal is $60.00.

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export NO_PROXY="localhost,127.0.0.1"
+export no_proxy="localhost,127.0.0.1"
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
 
 for dependency in python3 kane-cli; do
@@ -9,7 +11,7 @@ for dependency in python3 kane-cli; do
   fi
 done
 
-url=http://localhost:8080
+url=http://127.0.0.1:8080
 mkdir -p .testmuai/cartloop
 logs=$(mktemp -d .testmuai/cartloop/run.XXXXXX)
 PYTHONUNBUFFERED=1 python3 -m http.server 8080 --bind 127.0.0.1 >"$logs/server.log" 2>&1 &
